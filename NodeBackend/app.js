@@ -1,6 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import OpenAI from 'openai'
+import mongoose from 'mongoose'
+import { mongo_uri } from './utils/openai.js'
+import chatRouter from './routes/chat.js'
 
 const app=express()
 
@@ -8,48 +11,25 @@ app.use(express.json()) // Middleware to parse incoming request bodies in a way 
 app.use(cors())
 
 
-const client=new OpenAI({
-    apiKey:""
+
+
+
+const connectDB=async ()=>{
+    await mongoose.connect(mongo_uri)
+}
+
+connectDB().then(()=>{
+    console.log('connected to db')
+}).catch((err)=>{
+    console.log(err)
 })
 
 
-const response=await client.responses.create({
-    model:"gpt-4o-mini",
-    input:"what is value of 2+2"
+app.use('/chats',chatRouter)
+
+app.get('/',(req ,res)=>{
+    res.send('hello from root route')
 })
-
-
-app.post('/test',async(req,res)=>{
-    const options={
-        method:"POST",
-        headers:{
-            "Content-type":"application/json",
-            "Authorization":`Bearer ${process.env.OpenAI_Api_Key}`,
-        },
-        body:JSON.stringify({
-            model:"gpt-4o-mini",
-            mesages:[{
-                role:"user",
-                content:req.body.message 
-            }]
-        })
-    }
-
-    try{
-          const response=await fetch('https://api.openai.com/v1/chat/completion',options)
-          const data=await response.json() 
-           
-          const reply=data.choices[0].message.content 
-          //console.log(reply)
-
-          res.status(200).send(reply) 
-    }catch(err){
-
-    }
-})
-
-console.log(response)
-
 
 app.listen(3000,()=>{
     console.log('server is listening on port 3000')
