@@ -27,6 +27,8 @@ connectDB().then(()=>{
 
 app.use('/chats',chatRouter)
 
+
+
 app.get('/',(req ,res)=>{
     res.send('hello from root route')
 })
